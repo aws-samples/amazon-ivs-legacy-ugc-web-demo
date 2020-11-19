@@ -1,0 +1,442 @@
+<html>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+  <body>
+    <div class="container">
+
+      <div class="row">
+        <div class="page-header">
+          <h3>List of IVS Channels</h3>
+        </div>
+        <div class="col-sm-12">
+          Response:
+          <pre id="listOfChannelsResponse"></pre>
+          <button type="submit" id="refreshIVSChannels" class="btn btn-success">Refresh</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>List of IVS Streams <small>Live Streams</small></h3>
+        </div>
+        <div class="col-sm-12">
+          Response:
+          <pre id="listOfStreamsResponse"></pre>
+          <button type="submit" id="refreshIVSStreams" class="btn btn-success">Refresh</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>Get an IVS Stream</h3>
+        </div>
+        <div class="col-sm-6">
+          <form id="getStreamForm">
+            <div class="form-group">
+              <input id="getStreamFormChannelArn" type="text" placeholder="ChannelArn" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        <div class="col-sm-6">
+          Response:
+          <pre id="getStreamFormResponse"></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>List of DDB Channels <small>From DynamoDB</small></h3>
+        </div>
+        <div class="col-sm-12">
+          Response:
+          <pre id="listOfDDBStreamsResponse"></pre>
+          <button type="submit" id="refreshDDBChannels" class="btn btn-success">Refresh</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>Sign Up</h3>
+        </div>
+        <div class="col-sm-6">
+          <form id="signupForm">
+            <div class="form-group">
+              <input id="signupFormEmail" type="email" placeholder="Email" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <input id="signupFormPassword" type="password" placeholder="Password" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <input id="signupFormAvatar" type="text" placeholder="Avatar" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <input id="signupFormBgColor" type="text" placeholder="Color" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <select id="signupFormChannelLatencyMode" class="form-control" required >
+                <option value="">Select a Latency Mode</option>
+                <option value="NORMAL" selected>NORMAL</option>
+                <option value="LOW">LOW</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <select id="signupFormChannelType" class="form-control" required >
+                <option value="">Select a Channel Type</option>
+                <option value="BASIC" selected>BASIC</option>
+                <option value="STANDARD">STANDARD</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        <div class="col-sm-6">
+          Response:
+          <pre id="signupFormResponse"></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>Sign In</h3>
+        </div>
+        <div class="col-sm-6">
+          <form id="signinForm">
+            <div class="form-group">
+              <input id="signinFormEmail" type="text" placeholder="Email" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <input id="signinFormPassword" type="password" placeholder="Password" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        <div class="col-sm-6">
+          Response:
+          <pre id="signinFormResponse"></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>Get a User</h3>
+        </div>
+        <div class="col-sm-6">
+          <form id="getUserForm">
+            <div class="form-group">
+              <textarea id="getUserFormAccessToken" placeholder="Access Token" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        <div class="col-sm-6">
+          Response:
+          <pre id="getUserFormResponse"></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>Update a User's Attribute</h3>
+        </div>
+        <div class="col-sm-6">
+          <form id="updateUserForm">
+            <div class="form-group">
+              <textarea id="updateUserFormAccessToken" placeholder="Access Token" class="form-control" required></textarea>
+            </div>
+            <div class="form-group">
+Attribute Example:
+<pre>
+{
+  "Name": "picture",
+  "Value": "some-new-picture.png"
+}
+</pre>
+              <textarea id="updateUserFormAttributes" placeholder="Attribute" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        <div class="col-sm-6">
+          Response:
+          <pre id="updateUserFormResponse"></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>Reset Default Stream Key</h3>
+        </div>
+        <div class="col-sm-6">
+          <form id="resetDefaultStreamKeyForm">
+            <div class="form-group">
+              <textarea id="resetDefaultStreamKeyAccessToken" placeholder="Access Token" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        <div class="col-sm-6">
+          Response:
+          <pre id="resetDefaultStreamKeyResponse"></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>Change Password</h3>
+        </div>
+        <div class="col-sm-6">
+          <form id="changePasswordForm">
+            <div class="form-group">
+              <textarea id="changePasswordFormAccessToken" placeholder="Access Token" class="form-control" required></textarea>
+            </div>
+            <div class="form-group">
+              <input id="changePasswordFormOldPassword" type="password" placeholder="Old Password" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <input id="changePasswordFormNewPassword" type="password" placeholder="New Password" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        <div class="col-sm-6">
+          Response:
+          <pre id="changePasswordFormResponse"></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="page-header">
+          <h3>Delete a User</h3>
+        </div>
+        <div class="col-sm-6">
+          <form id="deleteUserForm">
+            <div class="form-group">
+              <textarea id="deleteUserFormAccessToken" placeholder="Access Token" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+        <div class="col-sm-6">
+          Response:
+          <pre id="deleteUserFormResponse"></pre>
+        </div>
+      </div>
+
+    </div>
+    <script>
+
+      const apiUrl = 'https://xoepr5ccdl.execute-api.us-west-2.amazonaws.com/Prod/';
+
+      function getIVSChannels() {
+        $.ajax({
+          type: "GET",
+          url: `${apiUrl}channels`,
+          dataType: "json",
+          success: (res) => {
+            $("#listOfChannelsResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#listOfChannelsResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      }
+
+      function getIVSStreams() {
+        $.ajax({
+          type: "GET",
+          url: `${apiUrl}channels/streams`,
+          dataType: "json",
+          success: (res) => {
+            $("#listOfStreamsResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#listOfStreamsResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      }
+
+      function getDDBChannels() {
+        $.ajax({
+          type: "GET",
+          url: `${apiUrl}`,
+          dataType: "json",
+          success: (res) => {
+            $("#listOfDDBStreamsResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#listOfDDBStreamsResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      }
+      
+      getIVSChannels();
+      getIVSStreams();
+      getDDBChannels();
+
+      $("#refreshIVSChannels").click(function( event ) {
+        event.preventDefault();
+        getIVSChannels();
+      });
+
+      $("#refreshIVSStreams").click(function( event ) {
+        event.preventDefault();
+        getIVSStreams();
+      });
+
+      $("#refreshDDBChannels").click(function( event ) {
+        event.preventDefault();
+        getDDBChannels();
+      });
+
+      $("#getStreamForm").submit(function( event ) {
+        event.preventDefault();
+        $.ajax({
+          type: "GET",
+          url: `${apiUrl}channels/streams?channelArn=${encodeURIComponent($('#getStreamFormChannelArn').val())}`,
+          cache: false,
+          dataType: "json",
+          success: (res) => {
+            $("#getStreamFormResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#getStreamFormResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      });
+
+      $("#signupForm").submit(function( event ) {
+        event.preventDefault();
+        $.ajax({
+          type: "POST",
+          url: `${apiUrl}signUp`,
+          data: JSON.stringify({
+            email: $("#signupFormEmail").val(),
+            password: $("#signupFormPassword").val(),
+            avatar: $("#signupFormAvatar").val(),
+            bgColor: $("#signupFormBgColor").val(),
+            channelLatencyMode: $("#signupFormChannelLatencyMode").val(),
+            channelType: $("#signupFormChannelType").val()
+          }),
+          dataType: "json",
+          success: (res) => {
+            $("#signupFormResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#signupFormResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      });
+
+      $("#signinForm").submit(function( event ) {
+        event.preventDefault();
+        $.ajax({
+          type: "POST",
+          url: `${apiUrl}auth`,
+          data: JSON.stringify({
+            email: $("#signinFormEmail").val(),
+            password: $("#signinFormPassword").val()
+          }),
+          dataType: "json",
+          success: (res) => {
+            if (res && res.AuthenticationResult&& res.AuthenticationResult.AccessToken) {
+              $('#getUserFormAccessToken').val(res.AuthenticationResult.AccessToken);
+              $('#updateUserFormAccessToken').val(res.AuthenticationResult.AccessToken);
+              $('#resetDefaultStreamKeyAccessToken').val(res.AuthenticationResult.AccessToken);
+              $('#changePasswordFormAccessToken').val(res.AuthenticationResult.AccessToken);
+              $('#deleteUserFormAccessToken').val(res.AuthenticationResult.AccessToken);
+            }
+            $("#signinFormResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#signinFormResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      });
+
+      $("#getUserForm").submit(function( event ) {
+        event.preventDefault();
+        $.ajax({
+          type: "GET",
+          url: `${apiUrl}user?access_token=${$('#getUserFormAccessToken').val()}`,
+          cache: false,
+          dataType: "json",
+          success: (res) => {
+            $("#getUserFormResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#getUserFormResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      });
+
+      $("#updateUserForm").submit(function( event ) {
+        event.preventDefault();
+        $.ajax({
+          type: "POST",
+          url: `${apiUrl}user/attr?access_token=${$('#updateUserFormAccessToken').val()}`,
+          data: $("#updateUserFormAttributes").val(),
+          dataType: "json",
+          success: (res) => {
+            $("#updateUserFormResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#updateUserFormResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      });
+
+      $("#resetDefaultStreamKeyForm").submit(function( event ) {
+        event.preventDefault();
+        $.ajax({
+          type: "GET",
+          url: `${apiUrl}channels/default/streamKey/reset?access_token=${$('#resetDefaultStreamKeyAccessToken').val()}`,
+          dataType: "json",
+          success: (res) => {
+            $("#resetDefaultStreamKeyResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#resetDefaultStreamKeyResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      });
+
+      $("#changePasswordForm").submit(function( event ) {
+        event.preventDefault();
+        $.ajax({
+          type: "POST",
+          url: `${apiUrl}user/changePassword?access_token=${$('#changePasswordFormAccessToken').val()}`,
+          data: JSON.stringify({
+            oldPassword: $("#changePasswordFormOldPassword").val(),
+            newPassword: $("#changePasswordFormNewPassword").val()
+          }),
+          dataType: "json",
+          success: (res) => {
+            $("#changePasswordFormResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#changePasswordFormResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      });
+
+      $("#deleteUserForm").submit(function( event ) {
+        event.preventDefault();
+        $.ajax({
+          type: "GET",
+          url: `${apiUrl}user/delete?access_token=${$('#deleteUserFormAccessToken').val()}`,
+          dataType: "json",
+          success: (res) => {
+            $("#deleteUserFormResponse").html(JSON.stringify(res, null, 2));
+          },
+          error: (res)=> {
+            $("#deleteUserFormResponse").html(JSON.stringify(res.responseText, null, 2));
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

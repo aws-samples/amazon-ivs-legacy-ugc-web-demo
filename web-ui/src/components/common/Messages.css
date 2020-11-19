@@ -1,0 +1,14 @@
+.notice {
+  top: 6.5rem;
+  position: fixed;
+  z-index: 12;
+  color: var(--color-white);
+}
+
+.notice.notice--success {
+  color: var(--color-black);;
+}
+
+.notice.notice--success .icon {
+  fill: var(--color-black);
+}

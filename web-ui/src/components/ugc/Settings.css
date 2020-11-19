@@ -1,0 +1,49 @@
+:root {
+  --settings-btn-width: 10rem;
+  --settings-field-label-width: 25rem;
+  --settings-field-grid-template: var(--settings-field-label-width) 1fr;
+}
+
+.stream-item-link {
+  width: calc(100%); /* calc() is used to generate a final px value for text-overflow */
+  white-space: nowrap;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--section-max-width);
+}
+
+.settings-field {
+  display: grid;
+  grid-template-columns: var(--settings-field-grid-template);
+  align-items: center;
+}
+
+.settings-input-group {
+  display: flex;
+  align-items: center;
+}
+
+.settings-input-right-margin {
+  margin-right: calc(1rem + var(--settings-btn-width));
+}
+
+.settings-read-only-input {
+  background-color: var(--color-white-10);
+  cursor: pointer;
+}
+
+.btn--settings {
+  width: var(--settings-btn-width);
+  min-width: var(--settings-btn-width);
+}
+
+.btn--destruct {
+  color: var(--color-text-base);
+}

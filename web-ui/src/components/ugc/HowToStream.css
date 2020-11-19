@@ -1,0 +1,58 @@
+:root {
+  --how-to-circle-size: 3.2rem;
+  --how-to-padding: 13rem 3rem;
+}
+
+@media (max-width: 480px) { /* Smaller Screens */
+  :root {
+    --how-to-padding: 3rem 1.5rem;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) { /* Small Screens */
+  :root {
+    --how-to-padding: 5rem 3rem;
+  }
+}
+
+.how-to-stream {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 1rem;
+  place-items: center;
+  background: var(--color-black);
+  width: 100%;
+  padding: var(--how-to-padding);
+}
+
+.how-to-stream h2,
+.stream-offline h2 {
+  text-align: center;
+}
+
+.how-to-stream li {
+  list-style-type: none;
+}
+
+.stream-offline {
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.how-to-stream .link-to-settings {
+  color: var(--color-light-blue);
+  text-decoration: underline;
+}
+
+.numberCircle {
+  display: inline-block;
+  width: var(--how-to-circle-size);
+  height: var(--how-to-circle-size);
+  line-height: var(--how-to-circle-size);
+  border-radius: 50%;
+  border: 2px solid var(--color-white);
+  color: var(--color-white);
+  text-align: center;
+  box-sizing: content-box;
+}

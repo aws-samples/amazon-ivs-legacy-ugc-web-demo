@@ -1,0 +1,53 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/video.js/7.6.6/video-js.css');
+
+/* Variable Overrides */
+:root {
+  --video-width: 88.4rem;
+}
+
+/* Align the quality menu to right side of video container */
+.video-js .vjs-menu-button-popup .vjs-menu {
+  left: auto;
+  right: 0;
+}
+
+.video-js .vjs-subs-caps-button {
+  display: none;
+}
+
+.video-js.vjs-paused button.vjs-big-play-button {
+  display: block;
+}
+
+.video-js .vjs-tech {
+  border-radius: var(--radius-small);
+  outline: none;
+}
+
+.video-js .vjs-control-bar {
+  border-radius: 0 0 5px 5px;
+}
+
+@media (max-width: 480px) { /* Smaller Screens */
+  :root {
+    --video-width: 100%;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) { /* Small Screens */
+  :root {
+    --video-width: 100%;
+  }
+}
+
+@media (min-width: 767px) and (max-width: 1024px) { /* Large Screens */
+  :root {
+    --video-width: 100%;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1280px) { /* Large Screens */
+  :root {
+    --video-width: 64rem;
+  }
+}

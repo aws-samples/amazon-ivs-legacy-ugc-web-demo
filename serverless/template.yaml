@@ -1,0 +1,462 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: UGC Demo
+
+Globals:
+  Function:
+    Runtime: nodejs12.x
+    Timeout: 30
+    MemorySize: 128
+    Environment:
+      Variables:
+        METADATAS_TABLE_NAME: !Ref MetadatasTable
+        CHANNELS_TABLE_NAME: !Ref ChannelsTable
+        COGNITO_USER_POOL_ID: !Ref UserPool
+        COGNITO_USER_POOL_CLIENT_ID: !Ref UserPoolClient
+
+Parameters:
+  AuthName:
+    Type: String
+    Description: Unique Auth Name for Cognito Resources
+    Default: 'ugc'
+  DependenciesBucket:
+    Type: String
+    Description: S3 bucket where dependencies reside
+
+Resources:
+
+  # Workaround for latest SDK
+  
+  LambdaLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+        LayerName: !Sub ${AWS::StackName}-ugc-node-modules
+        Description: For IVS support and JWT
+        ContentUri:
+          Bucket: !Ref DependenciesBucket
+          Key: nodejs.zip
+        CompatibleRuntimes:
+          - nodejs12.x
+        LicenseInfo: 'MIT'
+        RetentionPolicy: Retain
+
+
+  # Cognito Triggers
+
+  PreSignUpLambda:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-presignup-trigger
+      CodeUri: lambda/
+      Layers:
+        - !Ref LambdaLayer
+      Handler: index.preSignUp
+  PreSignUpLambdaInvocationPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt PreSignUpLambda.Arn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+
+  # Cognito
+
+  UserPool:
+    Type: "AWS::Cognito::UserPool"
+    Properties:
+      UserPoolName: !Sub ${AuthName}-user-pool
+      MfaConfiguration: "OFF"
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: false
+          Required: true
+      LambdaConfig:
+        # PreSignUp: !GetAtt PreSignUpLambda.Arn # Circular Dependency Error
+        PreSignUp: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-presignup-trigger
+  UserPoolClient:
+    Type: "AWS::Cognito::UserPoolClient"
+    Properties:
+      ClientName: !Sub ${AuthName}-client
+      GenerateSecret: false
+      UserPoolId: !Ref UserPool
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+  IdentityPool:
+    Type: "AWS::Cognito::IdentityPool"
+    Properties:
+      IdentityPoolName: !Sub ${AuthName}Identity
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders: 
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+  CognitoUnAuthorizedRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal: 
+              Federated: "cognito-identity.amazonaws.com"
+            Action: 
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals: 
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+              "ForAnyValue:StringLike":
+                "cognito-identity.amazonaws.com:amr": unauthenticated
+      Policies:
+        - PolicyName: "CognitoUnauthorizedPolicy"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: "Allow"
+                Action:
+                  - "mobileanalytics:PutEvents"
+                  - "cognito-sync:*"
+                Resource: "*"
+  CognitoAuthorizedRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal: 
+              Federated: "cognito-identity.amazonaws.com"
+            Action: 
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals: 
+                "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+              "ForAnyValue:StringLike":
+                "cognito-identity.amazonaws.com:amr": authenticated
+      Policies:
+        - PolicyName: "CognitoAuthorizedPolicy"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: "Allow"
+                Action:
+                  - "mobileanalytics:PutEvents"
+                  - "cognito-sync:*"
+                  - "cognito-identity:*"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+  IdentityPoolRoleMapping:
+    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        authenticated: !GetAtt CognitoAuthorizedRole.Arn
+        unauthenticated: !GetAtt CognitoUnAuthorizedRole.Arn
+
+  # Dynamo Tables
+
+  MetadatasTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+  ChannelsTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+
+  # App Endpoints
+  
+  SignUpLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.signUp
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChannelsTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /signUp
+            Method: POST
+  AuthLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.authUser
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /auth
+            Method: POST
+  GetUserLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.getUser
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: GET
+  UpdateUserAttributeLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.updateUserAttribute
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /user/attr
+            Method: POST # Workaround for CORS; should be PUT method
+  ChangePasswordLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.changePassword
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /user/changePassword
+            Method: POST
+  DeleteUserLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.deleteUser
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChannelsTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /user/delete
+            Method: GET # Workaround for CORS; should be DELETE method
+
+  GetDDBChannelsLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.get
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChannelsTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+  
+  # IVS Interaction Endpoints
+  
+  CreateChannelLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.createChannel
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MetadatasTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /channels
+            Method: POST
+  CreateStreamKeyLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.createStreamKey
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MetadatasTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /channels/streamKey
+            Method: POST
+  GetChannelsLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.getChannels
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MetadatasTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /channels
+            Method: GET
+  GetStreamsLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.getStreams
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MetadatasTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /channels/streams
+            Method: GET
+  GetStreamKeysLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.getStreamKeys
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MetadatasTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /channels/streamKeys
+            Method: GET
+  ResetDefaultChannelStreamKeyLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.resetDefaultStreamKey
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MetadatasTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /channels/default/streamKey/reset
+            Method: GET
+  SendMetadaLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.sendMetadata
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MetadatasTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /channels/metadata
+            Method: POST
+
+  # Cron
+  IsLiveLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.isLive
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Timeout: 60
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChannelsTable
+      Events:
+        IsLiveScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Description: Check for live stream
+            Enabled: True
+
+  UGCAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: UGC-Access
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'ivs:ListChannels'
+              - 'ivs:GetChannel'
+              - 'ivs:CreateChannel'
+              - 'ivs:UpdateChannel'
+              - 'ivs:DeleteChannel'
+              - 'ivs:PutMetadata'
+              - 'ivs:CreateStreamKey'
+              - 'ivs:DeleteStreamKey'
+              - 'ivs:StopStream'
+              - 'ivs:ListStreams'
+              - 'ivs:GetStream'
+              - 'cognito-idp:*'
+              - 'dynamodb:DeleteItem'
+              - 'dynamodb:UpdateItem'
+            Resource: '*'
+      Roles:
+        - Ref: GetChannelsLambdaRole
+        - Ref: GetStreamsLambdaRole
+        - Ref: SendMetadaLambdaRole
+        - Ref: SignUpLambdaRole
+        - Ref: UpdateUserAttributeLambdaRole
+        - Ref: ResetDefaultChannelStreamKeyLambdaRole
+        - Ref: DeleteUserLambdaRole
+        - Ref: IsLiveLambdaRole
+
+Outputs:
+  ApiURL:
+    Description: "API endpoint URL for Prod environment"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

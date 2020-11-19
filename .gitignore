@@ -1,0 +1,11 @@
+# System files
+Thumbs.db
+ehthumbs.db
+.Trashes
+.Spotlight-V100
+.DS_Store
+.DS_Store?
+._*
+__MACOSX
+
+nodejs.zip

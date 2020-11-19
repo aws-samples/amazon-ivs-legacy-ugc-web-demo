@@ -1,0 +1,84 @@
+/* Modal overrides */
+.modal__el--full-height {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Needed to prevent vertical overflow issues with .modal__el--full-height */
+.justify-center-wrapper {
+  max-height: 100%;
+}
+
+.form-grid {
+  height: 100vh;
+  position: relative;
+  display: grid;
+  /* grid-template-columns: minmax(380px, 460px) 1fr; */
+  overflow: hidden;
+}
+
+.create-account {
+  text-align: center;
+}
+
+.create-account-link {
+  color: aqua;
+  cursor: pointer;
+}
+
+.sign-in-link {
+  color: aqua;
+  cursor: pointer;
+}
+
+.sign-in-failed-link {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.password-requirements {
+  font-size: 1.2rem;
+}
+
+.password-requirements ul {
+  padding-top: unset;
+}
+
+.password-requirements.invalid-password {
+  color: var(--color--destructive);
+}
+
+.email-sign-in-link {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Overwrites */
+input, select {
+  color: var(--color-text-inverted);
+}
+
+a {
+  color: var(--color-text-base);
+  font-weight: 600;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.btn:disabled {
+  opacity: .5;
+}
+
+.select__field {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position-x: 100%;
+  background-position-y: 5px;
+}

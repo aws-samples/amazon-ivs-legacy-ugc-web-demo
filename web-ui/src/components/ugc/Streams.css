@@ -1,0 +1,39 @@
+.stream-items {
+  grid-row-gap: 4rem;
+}
+
+.stream-item {
+  border-radius: var(--radius);
+  width: 100%;
+}
+
+.stream-item__image {
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.stream-item-image-link {
+  border-radius: var(--radius);
+}
+
+.stream-item-image-link:focus {
+  box-shadow: inset 0 0 0 2px var(--color-white-80);
+}
+
+.stream-item-image-link:hover .stream-item__image,
+.stream-item-image-link:focus .stream-item__image {
+  transform: scale(1.2);
+  box-shadow: 0 4px 20px 0 rgba(0,0,0,0.4);
+}
+
+.stream-username-wrapper {
+  position: relative;
+  top: -0.5rem
+}
+
+/* Additional stream background colors */
+.bg-turquoise { background-color: #56FFE1; }
+.bg-plum { background-color: #BBB8FF; }
+.bg-violet { background-color: var(--color-dark-pink); }

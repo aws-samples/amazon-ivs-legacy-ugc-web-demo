@@ -1,0 +1,18 @@
+.delete-account .modal__el {
+  width: 500px;
+  padding: 3rem;
+}
+
+.delete-account button.btn {
+  display: inline-block;
+}
+
+.delete-account .buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+}
+
+.delete-account .btn.btn--primary {
+  margin: unset;
+}

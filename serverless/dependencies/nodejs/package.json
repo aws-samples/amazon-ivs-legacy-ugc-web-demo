@@ -1,0 +1,16 @@
+{
+  "name": "ugc-web-serverless",
+  "version": "1.0.0",
+  "description": "Dependencies for serverless",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.735.0",
+    "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.4"
+  }
+}
