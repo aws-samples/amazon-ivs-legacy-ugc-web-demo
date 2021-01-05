@@ -43,6 +43,9 @@ class VideoPlayer extends Component {
       techOrder: ["AmazonIVS"],
       autoplay: true,
       muted: false,
+      controlBar: {
+        'pictureInPictureToggle': false
+      }
     };
 
     // instantiate video.js
