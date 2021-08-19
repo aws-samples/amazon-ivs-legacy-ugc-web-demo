@@ -2,7 +2,8 @@
 export const USE_MOCK_DATA = false;
 
 // Default video stream to play inside the video player
-export const DEFAULT_VIDEO_STREAM = "https://fcc3ddae59ed.us-west-2.playback.live-video.net/api/video/v1/us-west-2.893648527354.channel.DmumNckWFTqz.m3u8";
+export const DEFAULT_VIDEO_STREAM =
+  "https://fcc3ddae59ed.us-west-2.playback.live-video.net/api/video/v1/us-west-2.893648527354.channel.DmumNckWFTqz.m3u8";
 
 // API endpoint for retrieving the stream list, signin, signup, getUsers, etc
 export const UGC_API = "";
