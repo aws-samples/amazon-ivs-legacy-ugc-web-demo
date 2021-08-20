@@ -701,6 +701,19 @@ header .h1 {
   padding: 2rem;
 }
 
+@media (max-width: 767px) { /* Large Screens */
+  .modal__el {
+    width: 100%;
+  }
+}
+.modal_icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 20px;
+  height: 20px;
+}
+
 .modal__overlay {
   position: absolute;
   top: 0;

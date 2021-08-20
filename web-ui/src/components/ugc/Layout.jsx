@@ -1,298 +1,267 @@
-import React, { Component } from 'react';
-import { Redirect, withRouter } from 'react-router-dom';
-import * as config from '../../config';
-import * as util from '../util';
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { Redirect, withRouter } from "react-router-dom";
+import * as config from "../../config";
+import * as util from "../util";
 
 // Components
-import Home from './Home';
-import Channel from './Channel';
-import Settings from './Settings';
-import Messages from '../common/Messages';
-import Header from '../common/Header';
-import SignIn from './modals/SignIn';
-import SignUp from './modals/SignUp';
+import Home from "./Home";
+import Channel from "./Channel";
+import Settings from "./Settings";
+import Messages from "../common/Messages";
+import Header from "../common/Header";
+import SignIn from "./modals/SignIn";
+import SignUp from "./modals/SignUp";
 
 // Mock data
-import { mockStreams } from '../../__test__/mocks/streams-mocks';
+import { mockStreams } from "../../__test__/mocks/streams-mocks";
 
-class Layout extends Component {
-  constructor() {
-    super();
-    this.state = {
-      signedIn: false,
-      checkedAuth: false,
-      auth: {},
-      userInfo: {},
+const Layout = (props) => {
+  const [signedIn, setSignedIn] = useState(false);
+  const [checkedAuth, setCheckedAuth] = useState(false);
+  const [auth, setAuth] = useState({});
+  const [userInfo, setUserInfo] = useState({});
 
-      showSignIn: false,
-      showSignUp: false,
-      showSettings: false,
+  const [showSignedIn, setShowSignedIn] = useState(false);
+  const [showSignedUp, setShowSignedUp] = useState(false);
 
-      showMessage: false,
-      messageType: '',
-      message: '',
-    }
-  }
+  const [showMessage, setShowMessage] = useState(false);
+  const [messageType, setMessageType] = useState("");
+  const [message, setMessage] = useState("");
 
-  componentDidMount() {
+  useEffect(() => {
     // Global keybinds
-    document.addEventListener("keydown", this.handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     // Get User Auth Data
-    const auth = util.getWithExpiry('ugc');
+    const auth = util.getWithExpiry("ugc");
     if (auth && Object.keys(auth).length) {
-      this.setUserAuth(auth);
-      this.getUserInfo(auth);
+      setUserAuth(auth);
+      getUserInfo(auth);
     } else {
-      this.setState({ checkedAuth: true });
+      setCheckedAuth(true);
     }
-  }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
-  componentWillUnmount() {
-    document.removeEventListener("keydown", this.handleKeyDown);
-  }
-
-  async getUserInfo(auth) {
+  const getUserInfo = async (auth) => {
     try {
       const baseUrl = util.getApiUrlBase();
       const url = `${baseUrl}user?access_token=${auth.AccessToken}`;
       const response = await fetch(url);
       if (response.status === 200) {
         const json = await response.json();
-        this.setUserInfo(json);
+        handleUserInfo(json);
       } else {
-        throw new Error('Unable to get user information.')
+        throw new Error("Unable to get user information.");
       }
-    } catch(error) {
+    } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
-  async changeAttribute(auth, name, key, value) {
+  const changeAttribute = async (auth, name, key, value) => {
     try {
       const baseUrl = util.getApiUrlBase();
-      const url = `${baseUrl}user/attr?access_token=${encodeURIComponent(auth.AccessToken)}`;
+      const url = `${baseUrl}user/attr?access_token=${encodeURIComponent(
+        auth.AccessToken
+      )}`;
       const options = {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({
-          "Name": key,
-          "Value": value
-        })
+          Name: key,
+          Value: value,
+        }),
       };
 
       const response = await fetch(url, options);
       if (response.status === 200) {
-        this.onSuccess(`${name} changed`);
-        this.getUserInfo(auth);
+        onSuccess(`${name} changed`);
+        getUserInfo(auth);
       } else {
         throw new Error(`Unable change ${name}`);
       }
-    } catch(error) {
+    } catch (error) {
       console.log(error.message);
-      this.onFailure(`Unable change ${name}`);
+      onFailure(`Unable change ${name}`);
     }
-  }
+  };
 
-  handleKeyDown = (e) => {
-    if (e.keyCode === 27) { // keyCode 27 is Escape key
-      if(this.state.showMessage) {
-        this.setState({ showMessage: false });
+  const handleKeyDown = (e) => {
+    if (e.keyCode === 27) {
+      // keyCode 27 is Escape key
+      if (showMessage) {
+        setShowMessage(false);
       }
     }
-  }
+  };
 
-  handleSignOut = () => {
-    util.removeSession('ugc');
-    this.resetStates();
+  const handleSignOut = () => {
+    util.removeSession("ugc");
+    resetStates();
 
     if (config.USE_MOCK_DATA) {
       const { streams } = mockStreams;
-      this.setState({ streams });
+      setStreams(streams);
     } else {
-      this.getLiveStreams();
+      getLiveStreams();
     }
-  }
+  };
 
-  onSuccess = (message) => {
-    this.setState({
-      showMessage: true,
-      messageType: 'success',
-      message,
-    }, () => {
-      setTimeout(() => {
-         this.setState({ showMessage: false });
-      }, 5000);
-    })
-  }
+  const onSuccess = (message) => {
+    setShowMessage(true);
+    setMessageType("success");
+    setMessage(message);
 
-  onFailure = (message) => {
-    this.setState({
-      showMessage: true,
-      messageType: 'error',
-      message
-    }, () => {
-      setTimeout(() => {
-         this.setState({ showMessage: false });
-      }, 5000);
-    })
-  }
+    setTimeout(() => {
+      setShowMessage(false);
+    }, 5000);
+  };
 
-  getCurrentPath = () => {
-    const currentPath = util.getBasePath();
-    return currentPath;
-  }
+  const onFailure = (message) => {
+    setShowMessage(true);
+    setMessageType("error");
+    setMessage(message);
 
-  showSignIn = () => {
-    this.setState({ showSignIn: true });
-  }
+    setTimeout(() => {
+      setShowMessage(false);
+    }, 5000);
+  };
 
-  showSignUp = () => {
-    this.setState({ showSignUp: true });
-  }
+  const showSignIn = () => {
+    setShowSignedIn(true);
+  };
 
-  closeSignIn = () => {
-    this.setState({ showSignIn: false });
-  }
+  const showSignUp = () => {
+    setShowSignedUp(true);
+  };
 
-  closeSignUp = () => {
-    this.setState({ showSignUp: false });
-  }
+  const closeSignIn = () => {
+    setShowSignedIn(false);
+  };
 
-  setUserInfo = (userInfo) => {
-    const arr = userInfo && userInfo.UserAttributes ? userInfo.UserAttributes : [];
-    const hash = Object.assign({}, ...arr.map(s => ({[s.Name]: s.Value})));
+  const closeSignUp = () => {
+    setShowSignedUp(false);
+  };
 
-    this.setState({ signedIn: true, userInfo: hash, checkedAuth: true, });
-  }
+  const handleUserInfo = (userInfo) => {
+    const arr =
+      userInfo && userInfo.UserAttributes ? userInfo.UserAttributes : [];
+    const hash = Object.assign({}, ...arr.map((s) => ({ [s.Name]: s.Value })));
 
-  setUserAuth = (auth) => {
-    this.setState({ auth: auth, checkedAuth: false });
-  }
+    setSignedIn(true);
+    setUserInfo(hash);
+    setCheckedAuth(true);
+  };
 
-  setAvatar = (avatar) => {
-    this.setState({ avatar });
-  }
+  const setUserAuth = (auth) => {
+    setAuth(auth);
+    setCheckedAuth(false);
+  };
 
-  closeSettings = (isDeleteAccount) => {
-    this.setUrlPath('');
+  const closeSettings = (isDeleteAccount) => {
+    setUrlPath("");
     if (isDeleteAccount) {
-      this.handleSignOut();
-      this.setUrlPath(``);
-    } else {
-      this.setState({ showSettings: false });
+      handleSignOut();
+      setUrlPath(``);
     }
-  }
+  };
 
-  render() {
-    const {
-      auth,
-      checkedAuth,
-      userInfo,
-      signedIn,
-      showSignIn,
-      showSignUp,
-      showMessage,
-      messageType,
-      message
-    } = this.state;
+  // The logged-in user's info
+  const { preferred_username, picture } = userInfo;
+  const userAvatarUrl = util.getAvatarUrl(picture);
+  // The current URL path from react-router
+  const currentPath = props.location;
 
-    // The logged-in user's info
-    const { preferred_username, picture } = userInfo;
-    const userAvatarUrl = util.getAvatarUrl(picture);
-    // The current URL path from react-router
-    const currentPath = this.props.location;
-
-    // Render components based on route
-    const { page } = this.props;
-    let pageComponent = (
-      <Home
-        showSignIn={this.showSignIn}
-        username={preferred_username}
-        currentPath={currentPath}
-        signedIn={signedIn}
-      />
-    );
+  // Render components based on route
+  const { page } = props;
+  const pageComponent = () => {
     switch (page) {
-      case 'CHANNEL':
-        pageComponent = (
+      case "CHANNEL":
+        return (
           <Channel
             auth={auth}
             checkedAuth={checkedAuth}
-            onSuccess={this.onSuccess}
-            onFailure={this.onFailure}
-            changeAttribute={this.changeAttribute.bind(this)}
+            onSuccess={onSuccess}
+            onFailure={onFailure}
+            changeAttribute={changeAttribute}
             userInfo={userInfo}
             username={preferred_username}
             signedIn={signedIn}
           />
         );
-        break;
-      case 'SETTINGS':
+      case "SETTINGS":
         if (signedIn) {
-          pageComponent = (
+          return (
             <Settings
               userInfo={userInfo}
               auth={auth}
-              closeSettings={this.closeSettings}
-              setAvatar={this.setAvatar}
-              onSuccess={this.onSuccess}
-              onFailure={this.onFailure}
-              changeAttribute={this.changeAttribute}
-              getUserInfo={this.getUserInfo}
-              setUserInfo={this.setUserInfo}
+              closeSettings={closeSettings}
+              onSuccess={onSuccess}
+              onFailure={onFailure}
+              changeAttribute={changeAttribute}
+              getUserInfo={getUserInfo}
+              setUserInfo={handleUserInfo}
             />
           );
         } else {
-          pageComponent = (<Redirect to={{ pathname: '/' }} />);
+          return <Redirect to={{ pathname: "/" }} />;
         }
-        break;
       default:
-        pageComponent = (
+        return (
           <Home
-            showSignIn={this.showSignIn}
+            showSignIn={showSignIn}
             username={preferred_username}
             currentPath={currentPath}
             signedIn={signedIn}
           />
         );
-        break;
     }
+  };
 
-    return(
-      <React.Fragment>
-        <Header
-          avatar={picture}
-          avatarImg={userAvatarUrl}
-          checkedAuth={checkedAuth}
-          handleSignIn={this.showSignIn}
-          signedIn={signedIn}
-          myChannel={preferred_username}
+  return (
+    <React.Fragment>
+      <Header
+        avatar={picture}
+        avatarImg={userAvatarUrl}
+        checkedAuth={checkedAuth}
+        handleSignIn={showSignIn}
+        signedIn={signedIn}
+        myChannel={preferred_username}
+      />
+      <Messages
+        showMessage={showMessage}
+        message={message}
+        messageType={messageType}
+      />
+      {pageComponent()}
+      {showSignedIn && (
+        <SignIn
+          closeSignIn={closeSignIn}
+          showSignUp={showSignUp}
+          getUserInfo={getUserInfo}
+          setUserInfo={handleUserInfo}
+          setUserAuth={setUserAuth}
         />
-        <Messages showMessage={showMessage} message={message} messageType={messageType} />
-        {pageComponent}
-        {showSignIn && (
-          <SignIn
-            closeSignIn={this.closeSignIn}
-            showSignUp={this.showSignUp}
-            getUserInfo={this.getUserInfo}
-            setUserInfo={this.setUserInfo}
-            setUserAuth={this.setUserAuth}
-            handleAppClick={this.handleAppClick}
-          />
-        )}
-        {showSignUp && (
-          <SignUp
-            closeSignUp={this.closeSignUp}
-            showSignIn={this.showSignIn}
-            setUserAuth={this.setUserAuth}
-            getUserInfo={this.getUserInfo}
-            setUserInfo={this.setUserInfo}
-            handleAppClick={this.handleAppClick}
-          />
-        )}
-      </React.Fragment>
-    )
-  }
-}
+      )}
+      {showSignedUp && (
+        <SignUp
+          closeSignUp={closeSignUp}
+          showSignIn={showSignIn}
+          setUserAuth={setUserAuth}
+          getUserInfo={getUserInfo}
+          setUserInfo={handleUserInfo}
+        />
+      )}
+    </React.Fragment>
+  );
+};
 
 export default withRouter(Layout);
+
+Layout.propTypes = {
+  location: PropTypes.object,
+  page: PropTypes.string,
+};

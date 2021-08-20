@@ -47,3 +47,12 @@
 .btn--destruct {
   color: var(--color-text-base);
 }
+
+@media (max-width: 767px) { /* Large Screens */
+  .settings-field {
+    grid-template-columns: 1fr;
+  }
+  .settings-input-right-margin {
+    margin-right: 0px;
+  }
+}
