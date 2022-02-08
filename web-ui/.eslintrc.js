@@ -10,7 +10,10 @@ module.exports = {
   // add your custom rules here
   rules: {
     "react/prop-types": 1,
-    "prettier/prettier": ["error", { singleQuote: false }],
+    "prettier/prettier": [
+      "error",
+      { singleQuote: false, trailingComma: "es5" },
+    ],
   },
   settings: {
     react: {
