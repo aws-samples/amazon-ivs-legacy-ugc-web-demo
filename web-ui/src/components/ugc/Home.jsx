@@ -22,7 +22,8 @@ const Home = (props) => {
     const getLiveStreams = async () => {
       try {
         const baseUrl = util.getApiUrlBase();
-        const url = `${baseUrl}`;
+        const auth = util.getWithExpiry("ugc");
+        const url = `${baseUrl}channels`;
 
         const response = await fetch(url);
         if (response.status === 200) {

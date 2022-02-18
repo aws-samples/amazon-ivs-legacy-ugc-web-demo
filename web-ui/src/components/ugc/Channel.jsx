@@ -61,8 +61,8 @@ const Channel = (props) => {
 
   const setMultipleStates = (currentSt) => {
     setStreamData({
-      currentStream: currentSt[0],
-      avatar: currentSt[0]["avatar"],
+      currentStream: currentSt,
+      avatar: currentSt["avatar"],
       gotStreams: true,
     });
   };
@@ -91,8 +91,9 @@ const Channel = (props) => {
   const getAndSetStreamInfo = async (username) => {
     getCurrentStreamInfo(username)
       .then((currentS) => {
+        console.log(currentS);
         setMultipleStates(currentS);
-        if (currentS[0].isLive === "No") {
+        if (currentS.isLive === "No") {
           // If we're not live, get the stream info again after a short timeout
           console.log(`USERNAME: ${username}`);
           streamTimeoutID.current = setTimeout(() => {
@@ -108,16 +109,14 @@ const Channel = (props) => {
   const getCurrentStreamInfo = async (username) => {
     try {
       const baseUrl = util.getApiUrlBase();
-      const url = `${baseUrl}`;
+      const url = `${baseUrl}channels?id=${username}`;
 
       const response = await fetch(url);
       if (response.status === 200) {
         const json = await response.json();
         const streams = json;
-        const currentStream = streams.filter(
-          (stream) => stream.username === username
-        );
-        return currentStream;
+        console.log(streams);
+        return streams[0];
       } else {
         throw new Error("Unable to get live streams.");
       }
@@ -200,10 +199,8 @@ const Channel = (props) => {
   let videoStream = "";
   if (config.USE_MOCK_DATA) {
     videoStream = config.DEFAULT_VIDEO_STREAM;
-  } else if (streamId && Object.keys(streamData.currentStream).length) {
-    videoStream = Object.keys(streamData.currentStream.channel).length
-      ? streamData.currentStream.channel.channel.playbackUrl
-      : "";
+  } else {
+    videoStream = streamData.currentStream.playbackUrl;
   }
 
   // Check if stream is live
@@ -215,10 +212,10 @@ const Channel = (props) => {
 
   // Begin timer tick if stream is live
   if (isLiveStreaming) {
-    startTick();
-    if (!elapsedStreaming) {
-      tick();
-    }
+    // startTick();
+    // if (!elapsedStreaming) {
+    //   tick();
+    // }
   } else {
     stopTick();
   }

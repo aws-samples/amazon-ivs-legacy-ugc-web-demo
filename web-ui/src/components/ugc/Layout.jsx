@@ -78,14 +78,15 @@ const Layout = (props) => {
 
       const response = await fetch(url, options);
       if (response.status === 200) {
+        console.log(response);
         onSuccess(`${name} changed`);
         getUserInfo(auth);
       } else {
-        throw new Error(`Unable change ${name}`);
+        throw new Error(`Unable to change ${name}`);
       }
     } catch (error) {
       console.log(error.message);
-      onFailure(`Unable change ${name}`);
+      onFailure(`Unable to change ${name}`);
     }
   };
 

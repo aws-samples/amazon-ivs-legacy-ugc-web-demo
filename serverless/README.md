@@ -123,7 +123,7 @@ Payload:
 
 ### Get a User
 
-Endpoint: `<ApiURL>user?access_token=<my_access_token>`<br />
+Endpoint: `<ApiURL>user/username?access_token=<my_access_token>`<br />
 Method: GET<br />
 Content Type: JSON<br />
 
@@ -161,27 +161,59 @@ Endpoint: `<ApiURL>user/delete?access_token=<my_access_token>`<br />
 Method: GET<br />
 Content Type: JSON<br />
 
-### List of IVS Channels
+### Get IVS Stream Configuration
+
+Endpoint: `<ApiURL>stream?access_token=<my_access_token>`<br />
+Method: GET<br />
+Content Type: JSON<br />
+```
+{
+  "streamKey": "stream-key",
+  "ingest": "ingest-server"
+}
+```
+
+### List IVS Channels
 
 Endpoint: `<ApiURL>channels`<br />
 Method: GET<br />
 Content Type: JSON<br />
+```
+[
+  {
+    "username": "username",
+    "avatar": "avatar",
+    "bgColor": "color",
+    "channelName": "channelName",
+    "playbackUrl": "playbackUrl",
+    "isLive": "yes/no",
+    "startTime": "2022-02-17T22:55:30.000Z" // "0" if offline
+  },
+  ...
+]
+```
 
-### List of IVS Streams
+### List Live Channels
 
-Endpoint: `<ApiURL>channels/streams`<br />
+Endpoint: `<ApiURL>live-channels`<br />
 Method: GET<br />
 Content Type: JSON<br />
+```
+[
+  {
+    "username": "username",
+    "avatar": "avatar",
+    "bgColor": "color",
+    "channelName": "channelName",
+    "playbackUrl": "playbackUrl"
+  },
+  ...
+]
+```
 
-### Get a IVS Stream
+### Get a Channel
 
-Endpoint: `<ApiURL>channels/streams?channelArn=<channel-arn>` - Remember to `encodeURIComponent` channelArn<br />
-Method: GET<br />
-Content Type: JSON<br />
-
-### List of DDB Channels
-
-Endpoint: `<ApiURL>`<br />
+Endpoint: `<ApiURL>channels/?id=<username>` - Remember to `encodeURIComponent` channelArn<br />
 Method: GET<br />
 Content Type: JSON<br />
 

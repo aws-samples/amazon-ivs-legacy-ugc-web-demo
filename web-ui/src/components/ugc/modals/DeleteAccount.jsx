@@ -33,7 +33,11 @@ const DeleteAccount = (props) => {
         auth.AccessToken
       )}`;
 
-      const response = await fetch(url);
+      const options = {
+        method: "DELETE",
+      };
+
+      const response = await fetch(url, options);
       if (response.status === 200) {
         props.onSuccess("User account deleted");
         props.closeDelete();
