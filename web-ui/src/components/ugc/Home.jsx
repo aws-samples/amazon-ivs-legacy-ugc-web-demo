@@ -74,11 +74,7 @@ const Home = (props) => {
               <h2>Live Streams</h2>
               <div>There are no live streams available.</div>
               <div>
-                <Link
-                  className="sign-in"
-                  to={`${currentPath}/signin`}
-                  onClick={showSignIn}
-                >
+                <Link className="sign-in" to="/signin" onClick={showSignIn}>
                   Sign in
                 </Link>{" "}
                 to go live and see your stream here.
