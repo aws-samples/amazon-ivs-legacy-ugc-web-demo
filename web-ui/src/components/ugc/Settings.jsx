@@ -234,26 +234,16 @@ const Settings = (props) => {
   };
 
   const { userInfo, auth, onSuccess, onFailure } = props;
-  const userInfoValid = Object.keys(userInfo).length ? true : false;
+  const isUserInfoValid = !!(
+    Object.keys(userInfo).length && userInfo.defaultChannelDetails
+  );
 
-  const currentUsername = !!username
-    ? username
-    : userInfoValid
-    ? userInfo.preferred_username
-    : "";
-  const currentBgColor = !!bgColor
-    ? bgColor
-    : userInfoValid
-    ? userInfo.profile.bgColor
-    : "";
-  const currentAvatar = !!avatar
-    ? avatar
-    : userInfoValid
-    ? userInfo.picture
-    : "";
+  const currentUsername = username || userInfo.username || "";
+  const currentBgColor = bgColor || userInfo.bgColor || "";
+  const currentAvatar = avatar || userInfo.avatar || "";
 
-  let currentIngestServer = userInfoValid
-    ? userInfo.profile.defaultChannelDetails.channel.ingestEndpoint
+  let currentIngestServer = isUserInfoValid
+    ? userInfo?.defaultChannelDetails.channel.ingestEndpoint
     : "";
   if (currentIngestServer) {
     currentIngestServer = `rtmps://${currentIngestServer}/app/`;
@@ -263,10 +253,10 @@ const Settings = (props) => {
 
   if (!!streamKey) {
     currentStreamKey = streamKey;
-  } else if (userInfoValid) {
+  } else if (isUserInfoValid) {
     currentStreamKey =
-      userInfo.profile.defaultChannelDetails.streamKey.value ||
-      userInfo.profile.defaultChannelDetails.streamKey.streamKey.value;
+      userInfo.defaultChannelDetails.streamKey.value ||
+      userInfo.defaultChannelDetails.streamKey.streamKey.value;
   }
 
   const streamKeyCopyDisabled = !currentStreamKey;

@@ -1772,7 +1772,7 @@ exports.getUsername = async (event, context, callback) => {
     const filtered = {
       username: result.Item.Username.S,
       avatar: result.Item.Avatar.S,
-      gbcolor: result.Item.BgColor.S,
+      bgColor: result.Item.BgColor.S,
     };
 
     response.statusCode = 200;

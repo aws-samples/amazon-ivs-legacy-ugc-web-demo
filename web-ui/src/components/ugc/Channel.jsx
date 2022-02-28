@@ -221,13 +221,17 @@ const Channel = (props) => {
   }
 
   // Validate user info and check if current channel belongs to user
-  const userInfoValid = Object.keys(userInfo).length ? true : false;
-  let isMyChannel = signedIn && streamId === userInfo["preferred_username"];
+  const isUserInfoValid = !!(
+    Object.keys(userInfo).length &&
+    (userInfo.defaultChannelName || userInfo.defaultChannelDetails)
+  );
+  let isMyChannel = signedIn && streamId === userInfo.username;
 
-  if (!isMyChannel && userInfoValid) {
+  if (!isMyChannel && isUserInfoValid) {
     if (
-      userInfo.preferred_username === streamData.currentStream.username ||
-      props.channelUser === userInfo.preferred_username
+      [streamData.currentStream.username, props.channelUser].includes(
+        userInfo.username
+      )
     ) {
       isMyChannel = true;
     }
@@ -236,10 +240,10 @@ const Channel = (props) => {
   // Set the title of the current stream
   let currentStreamTitle = myStreamTitle;
   // If the stream title is not set, display the default title.
-  if (!currentStreamTitle && userInfoValid) {
+  if (!currentStreamTitle && isUserInfoValid) {
     currentStreamTitle =
-      userInfo.profile.defaultChannelName ||
-      userInfo.profile.defaultChannelDetails.channel.name;
+      userInfo.defaultChannelName ||
+      userInfo.defaultChannelDetails.channel.name;
   }
   const saveStreamTitleDisabled = !currentStreamTitle;
 

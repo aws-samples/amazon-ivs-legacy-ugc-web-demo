@@ -49,7 +49,7 @@ const Layout = (props) => {
   const getUserInfo = async (auth) => {
     try {
       const baseUrl = util.getApiUrlBase();
-      const url = `${baseUrl}user?access_token=${auth.AccessToken}`;
+      const url = `${baseUrl}user/username?access_token=${auth.AccessToken}`;
       const response = await fetch(url);
       if (response.status === 200) {
         const json = await response.json();
@@ -147,13 +147,9 @@ const Layout = (props) => {
     setShowSignedUp(false);
   };
 
-  const handleUserInfo = (userInfo) => {
-    const arr =
-      userInfo && userInfo.UserAttributes ? userInfo.UserAttributes : [];
-    const hash = Object.assign({}, ...arr.map((s) => ({ [s.Name]: s.Value })));
-
+  const handleUserInfo = (data) => {
     setSignedIn(true);
-    setUserInfo(hash);
+    setUserInfo((prev) => ({ ...prev, ...data }));
     setCheckedAuth(true);
   };
 
@@ -171,8 +167,8 @@ const Layout = (props) => {
   };
 
   // The logged-in user's info
-  const { preferred_username, picture } = userInfo;
-  const userAvatarUrl = util.getAvatarUrl(picture);
+  const { avatar, username } = userInfo;
+  const userAvatarUrl = util.getAvatarUrl(avatar);
   // The current URL path from react-router
   const currentPath = props.location;
 
@@ -189,7 +185,7 @@ const Layout = (props) => {
             onFailure={onFailure}
             changeAttribute={changeAttribute}
             userInfo={userInfo}
-            username={preferred_username}
+            username={username}
             signedIn={signedIn}
           />
         );
@@ -214,7 +210,7 @@ const Layout = (props) => {
         return (
           <Home
             showSignIn={showSignIn}
-            username={preferred_username}
+            username={username}
             currentPath={currentPath}
             signedIn={signedIn}
           />
@@ -225,12 +221,12 @@ const Layout = (props) => {
   return (
     <React.Fragment>
       <Header
-        avatar={picture}
+        avatar={avatar}
         avatarImg={userAvatarUrl}
         checkedAuth={checkedAuth}
         handleSignIn={showSignIn}
         signedIn={signedIn}
-        myChannel={preferred_username}
+        myChannel={username}
       />
       <Messages
         showMessage={showMessage}
