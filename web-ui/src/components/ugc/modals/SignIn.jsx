@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import * as util from "../../util";
@@ -48,6 +47,7 @@ const SignIn = (props) => {
 
       props.setUserAuth(json.AuthenticationResult);
       props.getUserInfo(json.AuthenticationResult);
+      props.getUserStreamInfo(json.AuthenticationResult);
       props.closeSignIn();
     } catch (error) {
       console.log("Signin failed: ", error);
@@ -138,7 +138,7 @@ const SignIn = (props) => {
                 {signInText}
               </button>
               <div className="create-account">
-                Don't have an account?{" "}
+                {`Don't have an account? `}
                 <a
                   className="create-account-link"
                   href="/signup"
@@ -164,6 +164,7 @@ SignIn.propTypes = {
   getUserInfo: PropTypes.func,
   setUserInfo: PropTypes.func,
   setUserAuth: PropTypes.func,
+  getUserStreamInfo: PropTypes.func,
 };
 
 export default SignIn;

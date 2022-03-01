@@ -73,6 +73,7 @@ const SignUp = (props) => {
         );
         props.setUserAuth(json.AuthenticationResult);
         props.getUserInfo(json.AuthenticationResult);
+        props.getUserStreamInfo(json.AuthenticationResult);
         props.closeSignUp();
       } else {
         const errorMessage = await response.text();
@@ -249,6 +250,7 @@ SignUp.propTypes = {
   setUserAuth: PropTypes.func,
   getUserInfo: PropTypes.func,
   setUserInfo: PropTypes.func,
+  getUserStreamInfo: PropTypes.func,
 };
 
 export default SignUp;

@@ -262,6 +262,7 @@ const Layout = (props) => {
           getUserInfo={getUserInfo}
           setUserInfo={handleUserInfo}
           setUserAuth={setUserAuth}
+          getUserStreamInfo={getUserStreamInfo}
         />
       )}
       {showSignedUp && (
@@ -271,6 +272,7 @@ const Layout = (props) => {
           setUserAuth={setUserAuth}
           getUserInfo={getUserInfo}
           setUserInfo={handleUserInfo}
+          getUserStreamInfo={getUserStreamInfo}
         />
       )}
     </React.Fragment>
