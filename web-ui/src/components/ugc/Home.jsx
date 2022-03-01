@@ -14,16 +14,15 @@ const Home = (props) => {
   const [gotStreams, setGotStreams] = useState(false);
   const [streams, setStreams] = useState([]);
   const [streamId, setStreamId] = useState("");
-  const [showOfflineStreams, setShowOfflineStreams] = useState(false);
 
   useEffect(() => {
-    // document.addEventListener("keydown", this.handleKeyDown);
-    setShowOfflineStreams(config.SHOW_OFFLINE_STREAMS);
     const getLiveStreams = async () => {
       try {
         const baseUrl = util.getApiUrlBase();
         const auth = util.getWithExpiry("ugc");
-        const url = `${baseUrl}channels`;
+        const url = `${baseUrl}${
+          config.SHOW_OFFLINE_STREAMS ? "channels" : "live-channels"
+        }`;
 
         const response = await fetch(url);
         if (response.status === 200) {
@@ -63,9 +62,7 @@ const Home = (props) => {
 
   if (gotStreams) {
     if (streamsExist) {
-      componentToRender = (
-        <Streams streams={streams} showOfflineStreams={showOfflineStreams} />
-      );
+      componentToRender = <Streams streams={streams} />;
     } else if (!streamsExist) {
       componentToRender = (
         <React.Fragment>

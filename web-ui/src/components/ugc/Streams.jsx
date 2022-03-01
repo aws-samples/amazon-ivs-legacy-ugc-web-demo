@@ -2,11 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import * as util from "../util";
+import * as config from "../../config";
 
 // Stylesheets
 import "./Streams.css";
 
-const Streams = ({ streams, showOfflineStreams }) => {
+const Streams = ({ streams }) => {
   const generateStreams = () => {
     return streams.map((stream) => {
       const image = util.getAvatarUrl(stream.avatar);
@@ -37,8 +38,10 @@ const Streams = ({ streams, showOfflineStreams }) => {
       );
     });
   };
+  const headingText = config.SHOW_OFFLINE_STREAMS
+    ? "All Channels"
+    : "Live Streams";
 
-  const headingText = showOfflineStreams ? "All Channels" : "Live Streams";
   return (
     <div className="pos-relative full-width">
       <div className="mg-b-1">
@@ -53,7 +56,6 @@ const Streams = ({ streams, showOfflineStreams }) => {
 
 Streams.propTypes = {
   streams: PropTypes.array,
-  showOfflineStreams: PropTypes.bool,
 };
 
 export default Streams;

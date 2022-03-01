@@ -1420,7 +1420,7 @@ exports.getChannels = async(event, context, callback) => {
           username: result.Items[prop].Username.S,
           avatar: result.Items[prop].Avatar.S,
           bgColor: result.Items[prop].BgColor.S,
-          channelName: JSON.parse(result.Items[prop].Channel.S).channel.name,
+          channelName: result.Items[prop].Name.S,
           playbackUrl: JSON.parse(result.Items[prop].Channel.S).channel.playbackUrl,
           isLive: result.Items[prop].IsLive && result.Items[prop].IsLive.BOOL ? 'Yes' : 'No'
         });
@@ -1473,7 +1473,7 @@ exports.liveChannels = async(event, context, callback) => {
           username: result.Items[prop].Username.S,
           avatar: result.Items[prop].Avatar.S,
           bgColor: result.Items[prop].BgColor.S,
-          channelName: JSON.parse(result.Items[prop].Channel.S).channel.name,
+          channelName: result.Items[prop].Name.S,
           playbackUrl: JSON.parse(result.Items[prop].Channel.S).channel.playbackUrl,
         });
       }
