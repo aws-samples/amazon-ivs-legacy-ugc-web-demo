@@ -38,6 +38,7 @@ const Layout = (props) => {
     if (auth && Object.keys(auth).length) {
       setUserAuth(auth);
       getUserInfo(auth);
+      getUserStreamInfo(auth);
     } else {
       setCheckedAuth(true);
     }
@@ -51,11 +52,31 @@ const Layout = (props) => {
       const baseUrl = util.getApiUrlBase();
       const url = `${baseUrl}user/username?access_token=${auth.AccessToken}`;
       const response = await fetch(url);
+
       if (response.status === 200) {
         const json = await response.json();
+
         handleUserInfo(json);
       } else {
         throw new Error("Unable to get user information.");
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const getUserStreamInfo = async (auth) => {
+    try {
+      const baseUrl = util.getApiUrlBase();
+      const url = `${baseUrl}stream?access_token=${auth.AccessToken}`;
+      const response = await fetch(url);
+
+      if (response.status === 200) {
+        const json = await response.json();
+
+        setUserInfo((prev) => ({ ...prev, ...json }));
+      } else {
+        throw new Error("Unable to get user stream information.");
       }
     } catch (error) {
       console.log(error.message);

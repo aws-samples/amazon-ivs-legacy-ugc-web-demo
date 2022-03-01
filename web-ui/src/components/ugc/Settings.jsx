@@ -241,24 +241,10 @@ const Settings = (props) => {
   const currentUsername = username || userInfo.username || "";
   const currentBgColor = bgColor || userInfo.bgColor || "";
   const currentAvatar = avatar || userInfo.avatar || "";
-
-  let currentIngestServer = isUserInfoValid
-    ? userInfo?.defaultChannelDetails.channel.ingestEndpoint
+  const currentIngestServer = userInfo.ingestEndpoint
+    ? `rtmps://${userInfo.ingestEndpoint}/app/`
     : "";
-  if (currentIngestServer) {
-    currentIngestServer = `rtmps://${currentIngestServer}/app/`;
-  }
-
-  let currentStreamKey = "";
-
-  if (!!streamKey) {
-    currentStreamKey = streamKey;
-  } else if (isUserInfoValid) {
-    currentStreamKey =
-      userInfo.defaultChannelDetails.streamKey.value ||
-      userInfo.defaultChannelDetails.streamKey.streamKey.value;
-  }
-
+  const currentStreamKey = streamKey || userInfo.streamKey || "";
   const streamKeyCopyDisabled = !currentStreamKey;
   const ingestServerCopyDisabled = !currentIngestServer;
   const usernameSaveDisabled = !currentUsername;
