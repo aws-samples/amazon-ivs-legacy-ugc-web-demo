@@ -11,9 +11,8 @@ import Streams from "./Streams";
 import { mockStreams } from "../../__test__/mocks/streams-mocks";
 
 const Home = (props) => {
-  const [gotStreams, setGotStreams] = useState(false);
+  const [hasFetchedStreams, setHasFetchedStreams] = useState(false);
   const [streams, setStreams] = useState([]);
-  const [streamId, setStreamId] = useState("");
 
   useEffect(() => {
     const getLiveStreams = async () => {
@@ -26,15 +25,10 @@ const Home = (props) => {
 
         const response = await fetch(url);
         if (response.status === 200) {
-          const json = await response.json();
-
-          let streams = json;
-          if (!config.SHOW_OFFLINE_STREAMS) {
-            streams = streams.filter((stream) => stream.isLive === "Yes");
-          }
+          const streams = await response.json();
 
           setStreams(streams);
-          setGotStreams(true);
+          setHasFetchedStreams(true);
         } else {
           throw new Error("Unable to get live streams.");
         }
@@ -46,8 +40,9 @@ const Home = (props) => {
     // Get live streams
     if (config.USE_MOCK_DATA) {
       const { streams } = mockStreams;
+
       setStreams(streams);
-      setGotStreams(true);
+      setHasFetchedStreams(true);
     } else {
       getLiveStreams();
     }
@@ -60,7 +55,7 @@ const Home = (props) => {
 
   let componentToRender = <div></div>;
 
-  if (gotStreams) {
+  if (hasFetchedStreams) {
     if (streamsExist) {
       componentToRender = <Streams streams={streams} />;
     } else if (!streamsExist) {

@@ -91,11 +91,11 @@ const Channel = (props) => {
   const getAndSetStreamInfo = async (username) => {
     getCurrentStreamInfo(username)
       .then((currentS) => {
-        console.log(currentS);
         setMultipleStates(currentS);
+
         if (currentS.isLive === "No") {
           // If we're not live, get the stream info again after a short timeout
-          console.log(`USERNAME: ${username}`);
+
           streamTimeoutID.current = setTimeout(() => {
             getAndSetStreamInfo(username);
           }, 5000);
@@ -115,7 +115,7 @@ const Channel = (props) => {
       if (response.status === 200) {
         const json = await response.json();
         const streams = json;
-        console.log(streams);
+
         return streams[0];
       } else {
         throw new Error("Unable to get live streams.");
@@ -165,14 +165,9 @@ const Channel = (props) => {
     let elapsedStreamingStr = "";
     if (config.USE_MOCK_DATA) {
       elapsedStreamingStr = " For 17m";
-    } else if (
-      Object.keys(streamData.currentStream).length &&
-      Object.keys(streamData.currentStream.channelStatus).length
-    ) {
+    } else if (streamData.currentStream?.streamStartTime) {
       // To calculate the time difference of two dates
-      const startDate = new Date(
-        streamData.currentStream.channelStatus.startTime
-      );
+      const startDate = new Date(streamData.currentStream.streamStartTime);
       const currentDate = new Date();
       const diffInSec = Math.floor(
         (currentDate.getTime() - startDate.getTime()) / 1000
@@ -204,27 +199,21 @@ const Channel = (props) => {
   }
 
   // Check if stream is live
-  const isLive =
-    streamId && streamData.currentStream
-      ? streamData.currentStream.isLive === "Yes"
-      : false;
-  const isLiveStreaming = videoStream && isLive ? true : false;
+  const isLive = !!(streamId && streamData?.currentStream?.isLive === "Yes");
+  const isLiveStreaming = !!(videoStream && isLive);
 
   // Begin timer tick if stream is live
   if (isLiveStreaming) {
-    // startTick();
-    // if (!elapsedStreaming) {
-    //   tick();
-    // }
+    startTick();
+    if (!elapsedStreaming) {
+      tick();
+    }
   } else {
     stopTick();
   }
 
   // Validate user info and check if current channel belongs to user
-  const isUserInfoValid = !!(
-    Object.keys(userInfo).length &&
-    (userInfo.defaultChannelName || userInfo.defaultChannelDetails)
-  );
+  const isUserInfoValid = !!Object.keys(userInfo).length;
   let isMyChannel = signedIn && streamId === userInfo.username;
 
   if (!isMyChannel && isUserInfoValid) {
@@ -241,9 +230,7 @@ const Channel = (props) => {
   let currentStreamTitle = myStreamTitle;
   // If the stream title is not set, display the default title.
   if (!currentStreamTitle && isUserInfoValid) {
-    currentStreamTitle =
-      userInfo.defaultChannelName ||
-      userInfo.defaultChannelDetails.channel.name;
+    currentStreamTitle = streamData.currentStream.channelName;
   }
   const saveStreamTitleDisabled = !currentStreamTitle;
 

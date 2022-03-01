@@ -234,10 +234,7 @@ const Settings = (props) => {
   };
 
   const { userInfo, auth, onSuccess, onFailure } = props;
-  const isUserInfoValid = !!(
-    Object.keys(userInfo).length && userInfo.defaultChannelDetails
-  );
-
+  const isUserInfoValid = !!Object.keys(userInfo).length;
   const currentUsername = username || userInfo.username || "";
   const currentBgColor = bgColor || userInfo.bgColor || "";
   const currentAvatar = avatar || userInfo.avatar || "";

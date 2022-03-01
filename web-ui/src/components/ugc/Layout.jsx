@@ -99,7 +99,6 @@ const Layout = (props) => {
 
       const response = await fetch(url, options);
       if (response.status === 200) {
-        console.log(response);
         onSuccess(`${name} changed`);
         getUserInfo(auth);
       } else {
