@@ -3,7 +3,14 @@ const AWS = require('aws-sdk');
 const jwt = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
 
-const region = 'us-west-2';
+const {
+  COGNITO_USER_POOL_ID,
+  COGNITO_USER_POOL_CLIENT_ID,
+  CHANNELS_TABLE_NAME,
+  REGION
+} = process.env;
+
+const region = REGION;
 const cognitoISP = new AWS.CognitoIdentityServiceProvider({
   apiVersion: '2016-04-18',
   region
@@ -14,11 +21,7 @@ const ivs = new AWS.IVS({
   region // Must be in one of the supported regions
 });
 
-const {
-  COGNITO_USER_POOL_ID,
-  COGNITO_USER_POOL_CLIENT_ID,
-  CHANNELS_TABLE_NAME
-} = process.env;
+
 
 const response = {
   "statusCode": 200,
@@ -85,18 +88,22 @@ const getJWKS = () => {
 
 // TODO: convert to authorizer
 const verifyAccessToken = (event) => {
-
+  console.log('event: ', event);
   return new Promise((resolve, reject) => {
 
     let header_access_token;
     if (event.headers && event.headers.Authorization) {
-
+      console.log('ESTA aca');
       const bearer_token = event.headers.Authorization.split(' ');
       header_access_token = bearer_token[0];
 
     }
 
-    if (!header_access_token && !event.queryStringParameters.access_token) {
+    console.log('header_access_token: ', header_access_token);
+
+    if (!header_access_token && (!event.queryStringParameters || !event.queryStringParameters.access_token) ) {
+
+      console.log('ESTA ENTRANDO A ESTE IF');
 
       let errMsg = 'Must provide access token';
       console.log(`verifyAccessToken > missing required fields: ${errMsg}`);
@@ -1091,108 +1098,6 @@ const _updateDDBChannelIsLive = async (isLive, id, stream) => {
 
 };
 
-exports.get = async(event, context, callback) => {
-  console.log("get event:", JSON.stringify(event, null, 2));
-
-  try {
-
-    const params = {
-      TableName: CHANNELS_TABLE_NAME
-    };
-
-    if (event.queryStringParameters && event.queryStringParameters.username) {
-      console.log("get event > by Id");
-
-      params.Key = {
-        'Id': {
-          S: event.queryStringParameters.username
-        }
-      };
-
-      console.info("get event > by Id > params:", JSON.stringify(params, null, 2));
-      
-      const result = await ddb.getItem(params).promise();
-
-      console.info("get event > by Id > result:", JSON.stringify(result, null, 2));
-
-      if (!result.Item) {
-        response.statusCode = 200;
-        response.body = JSON.stringify({});
-        callback(null, response);
-        return;
-      }
-
-      const filtered = {
-        username: result.Item.Username.S,
-        avatar: result.Item.Avatar.S,
-        bgColor: result.Item.BgColor.S,
-        channelArn: result.Item.ChannelArn ? result.Item.ChannelArn.S : '',
-        channelName: result.Item.Name ? result.Item.Name.S : '',
-        channel: result.Item.Channel ? JSON.parse(result.Item.Channel.S) : {},
-        channelStatus: result.Item.ChannelStatus ? result.Item.ChannelStatus.S : {},
-        isLive: result.Item.IsLive && result.Item.IsLive.BOOL ? 'Yes' : 'No'
-      };
-
-      response.statusCode = 200;
-      response.body = JSON.stringify(filtered, '', 2);
-
-      console.info("get event > by Id > response:", JSON.stringify(response, null, 2));
-
-      callback(null, response);
-
-      return;
-    }
-
-    console.log("get event > list");
-    
-    console.info("get event > list > params:", JSON.stringify(params, null, 2));
-
-    const result = await ddb.scan(params).promise();
-
-    console.info("get event > list > result:", JSON.stringify(result, null, 2));
-
-    if (!result.Items) {
-      response.statusCode = 200;
-      response.body = JSON.stringify([]);
-      callback(null, response);
-      return;
-    }
-
-    let filteredItems = [];
-    let prop;
-    for (prop in result.Items) {
-      let channelStatus = {};
-      try {
-        channelStatus = JSON.parse(result.Items[prop].ChannelStatus.S);
-      } catch(err) {}
-
-      filteredItems.push({
-        username: result.Items[prop].Username.S,
-        avatar: result.Items[prop].Avatar.S,
-        bgColor: result.Items[prop].BgColor.S,
-        channelArn: result.Items[prop].ChannelArn ? result.Items[prop].ChannelArn.S : '',
-        channelName: result.Items[prop].Name ? result.Items[prop].Name.S : '',
-        channel: result.Items[prop].Channel ? JSON.parse(result.Items[prop].Channel.S) : {},
-        channelStatus: channelStatus,
-        isLive: result.Items[prop].IsLive && result.Items[prop].IsLive.BOOL ? 'Yes' : 'No'
-      });
-    }
-
-    response.statusCode = 200;
-    response.body = JSON.stringify(filteredItems, '', 2);
-    
-    console.info("get event > list > response:", JSON.stringify(response, null, 2));
-
-    callback(null, response);
-
-  } catch(err) {
-    console.info("get event > err:", err, err.stack);
-    response.statusCode = 500;
-    response.body = err.stack;
-    callback(null, response);
-  }
-};
-
 const _deleteDdbChannel = async (sub) => {
 
   try {
@@ -1378,24 +1283,6 @@ exports.createChannel = async(event, context, callback) => {
 
   console.log("createChannel event > params:", JSON.stringify(params, null, 2));
 
-  /*try {
-
-    const result = await ivs.createChannel(params).promise();
-    console.info("createChannel event > result:", result);
-    response.statusCode = 200;
-    response.body = JSON.stringify(result);
-    
-    callback(null, response);
-
-  } catch(err) {
-
-    console.info("getChannels event > err:", err, err.stack);
-    response.statusCode = 500;
-    response.body = err.stack;
-    callback(null, response);
-    
-  }*/
-
   callback(null, _createChannel(params));
 
 };
@@ -1456,99 +1343,158 @@ exports.createStreamKey = async(event, context, callback) => {
 exports.getChannels = async(event, context, callback) => {
   console.log("getChannels event:", JSON.stringify(event, null, 2));
 
-  const params = {};
-
-  try {
-
-    if (event.queryStringParameters && event.queryStringParameters.channelArn) {
-      console.log("getChannels event > by channelArn");
-      params.arn = event.queryStringParameters.channelArn;
-
-      const result = await ivs.listChannel(params).promise();
-      console.info("getChannels event > result:", result);
-      response.statusCode = 200;
-      response.body = JSON.stringify(result);
+  if (event.queryStringParameters) {
+    try {
+      const params = {
+        TableName: CHANNELS_TABLE_NAME
+      };
+  
+      console.log("getChannels event > list");
       
+      console.info("getChannels event > list > params:", JSON.stringify(params, null, 2));
+  
+      const result = await ddb.scan(params).promise();
+  
+      console.info("getChannels event > list > result:", JSON.stringify(result, null, 2));
+  
+      if (!result.Items) {
+        response.statusCode = 200;
+        response.body = JSON.stringify([]);
+        callback(null, response);
+        return;
+      }
+  
+      let filteredItems = [];
+      let prop;
+      for (prop in result.Items) {
+          if (result.Items[prop].Username.S == event.queryStringParameters.id){
+          filteredItems.push({
+            username: result.Items[prop].Username.S,
+            avatar: result.Items[prop].Avatar.S,
+            bgColor: result.Items[prop].BgColor.S,
+            channelName: result.Items[prop].Name.S,
+            playbackUrl: JSON.parse(result.Items[prop].Channel.S).channel.playbackUrl,
+            isLive: result.Items[prop].IsLive && result.Items[prop].IsLive.BOOL ? 'Yes' : 'No',
+            streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S || '{}').startTime
+          });
+        }
+      }
+  
+      response.statusCode = 200;
+      response.body = JSON.stringify(filteredItems, '', 2);
+      
+      console.info("getChannels event > list > response:", JSON.stringify(response, null, 2));
+  
       callback(null, response);
-      return;
+  
+    } catch(err) {
+      console.info("getChannels event > err:", err, err.stack);
+      response.statusCode = 500;
+      response.body = err.stack;
+      callback(null, response);
     }
+  } else {
+    try {
+      const params = {
+        TableName: CHANNELS_TABLE_NAME
+      };
 
-    if (event.queryStringParameters) {
-      if (event.queryStringParameters.maxResults) {
-        params.maxResults = event.queryStringParameters.maxResults;
+      console.log("getChannels event > list");
+      
+      console.info("getChannels event > list > params:", JSON.stringify(params, null, 2));
+
+      const result = await ddb.scan(params).promise();
+
+      console.info("getChannels event > list > result:", JSON.stringify(result, null, 2));
+
+      if (!result.Items) {
+        response.statusCode = 200;
+        response.body = JSON.stringify([]);
+        callback(null, response);
+        return;
       }
-      if (event.queryStringParameters.nextToken) {
-        params.nextToken = event.queryStringParameters.nextToken;
+
+      let filteredItems = [];
+      let prop;
+      for (prop in result.Items) {
+        filteredItems.push({
+          username: result.Items[prop].Username.S,
+          avatar: result.Items[prop].Avatar.S,
+          bgColor: result.Items[prop].BgColor.S,
+          channelName: result.Items[prop].Name.S,
+          playbackUrl: JSON.parse(result.Items[prop].Channel.S).channel.playbackUrl,
+          isLive: result.Items[prop].IsLive && result.Items[prop].IsLive.BOOL ? 'Yes' : 'No',
+          streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S || '{}').startTime
+        });
       }
+
+      response.statusCode = 200;
+      response.body = JSON.stringify(filteredItems, '', 2);
+      
+      console.info("getChannels event > list > response:", JSON.stringify(response, null, 2));
+
+      callback(null, response);
+
+    } catch(err) {
+      console.info("getChannels event > err:", err, err.stack);
+      response.statusCode = 500;
+      response.body = err.stack;
+      callback(null, response);
     }
-
-    console.log("getChannels event > list");
-
-    const result = await ivs.listChannels(params).promise();
-    console.info("getChannels event > result:", result);
-    response.statusCode = 200;
-    response.body = JSON.stringify(result);
-    
-    callback(null, response);
-
-  } catch(err) {
-
-    console.info("getChannels event > err:", err, err.stack);
-    response.statusCode = 500;
-    response.body = err.stack;
-    callback(null, response);
-    
   }
 };
 
-exports.getStreams = async(event, context, callback) => {
-  console.log("getStreams event:", JSON.stringify(event, null, 2));
-
-  const params = {};
+exports.liveChannels = async(event, context, callback) => {
+  console.log("liveChannels event:", JSON.stringify(event, null, 2));
   
   try {
+    const params = {
+      TableName: CHANNELS_TABLE_NAME
+    };
 
-    if (event.queryStringParameters && event.queryStringParameters.channelArn) {
+    console.log("liveChannels event > list");
+    
+    console.info("liveChannels event > list > params:", JSON.stringify(params, null, 2));
 
-      console.log("getStreams event > by channelArn");
-      params.channelArn = event.queryStringParameters.channelArn;
-      console.log("getStreams event > by channelArn > params:", JSON.stringify(params, null, 2));
+    const result = await ddb.scan(params).promise();
 
-      const result = await ivs.getStream(params).promise();
-      console.log("getStreams event > result:", result);
+    console.info("liveChannels event > list > result:", JSON.stringify(result, null, 2));
+
+    if (!result.Items) {
       response.statusCode = 200;
-      response.body = JSON.stringify(result);
-      
+      response.body = JSON.stringify([]);
       callback(null, response);
       return;
+    }
+
+    let filteredItems = [];
+    let prop;
+    for (prop in result.Items) {
+      if (result.Items[prop].IsLive && result.Items[prop].IsLive.BOOL){
+        filteredItems.push({
+          username: result.Items[prop].Username.S,
+          avatar: result.Items[prop].Avatar.S,
+          bgColor: result.Items[prop].BgColor.S,
+          channelName: result.Items[prop].Name.S,
+          playbackUrl: JSON.parse(result.Items[prop].Channel.S).channel.playbackUrl,
+          streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S || '{}').startTime
+        });
+      }
       
     }
 
-    console.log("getStreams event > list");
-
-    if (event.queryStringParameters) {
-      if (event.queryStringParameters.maxResults) {
-        params.maxResults = event.queryStringParameters.maxResults;
-      }
-      if (event.queryStringParameters.nextToken) {
-        params.nextToken = event.queryStringParameters.nextToken;
-      }
-    }
-
-    const result = await ivs.listStreams(params).promise();
-    console.info("getStreams event > result:", result);
     response.statusCode = 200;
-    response.body = JSON.stringify(result);
+    response.body = JSON.stringify(filteredItems, '', 2);
     
+    console.info("liveChannels event > list > response:", JSON.stringify(response, null, 2));
+
     callback(null, response);
 
   } catch(err) {
-
-    console.info("getStreams event > err:", err, err.stack);
+    console.info("liveChannels event > err:", err, err.stack);
     response.statusCode = 500;
     response.body = err.stack;
     callback(null, response);
-    
   }
 };
 
@@ -1759,4 +1705,183 @@ exports.resetDefaultStreamKey = (event, context, callback) => {
     return;
 
   });
+};
+
+exports.getUsername = async (event, context, callback) => {
+  console.log("getUsername event:", JSON.stringify(event, null, 2));
+  try {
+    await verifyAccessToken(event);
+  } catch (err) {
+    console.log("getUsername event > verifyAccessToken > error:", err);
+    response.statusCode = 401;
+    response.body = err;
+    console.info("getUsername event > verifyAccessToken > error > response:", JSON.stringify(response, '', 2));
+    callback(null, response);
+    return;
+  }
+  let header_access_token;
+  if (event.headers && event.headers.Authorization) {
+    const bearer_token = event.headers.Authorization.split(' ');
+    header_access_token = bearer_token[0];
+  }
+
+  if (!header_access_token && !event.queryStringParameters.access_token) {
+    console.log("getUsername event > missing required fields: Must provide access token");
+    response.statusCode = 400;
+    response.body = "Must provide access token";
+    callback(null, response);
+    return;
+  }
+
+  try {
+    
+    const userData = await _getCognitoUser(header_access_token || event.queryStringParameters.access_token);
+    
+    // Convert `profile` attribute value from string to JSON
+    if (userData && userData.UserAttributes && userData.UserAttributes.length) {
+      let len = userData.UserAttributes.length;
+      while(--len >= 0) {
+        if (userData.UserAttributes[len].Name === 'profile') {
+          userData.UserAttributes[len].Value = JSON.parse(userData.UserAttributes[len].Value);
+          break;
+        }
+      }
+    }
+
+    console.log("getUsername event > success:", JSON.stringify(userData, '', 2));
+    const params = {
+      TableName: CHANNELS_TABLE_NAME,
+    };
+    const sub = userData.UserAttributes.find(obj => obj.Name === 'sub')
+    params.Key = {
+      'Id': {
+        S: sub.Value
+      }
+    };
+
+    console.info("getUsername event > by Id > params:", JSON.stringify(params, null, 2));
+      
+    const result = await ddb.getItem(params).promise();
+
+    console.info("getUsername event > by Id > result:", JSON.stringify(result, null, 2));
+
+    if (!result.Item) {
+      response.statusCode = 200;
+      response.body = JSON.stringify({});
+      callback(null, response);
+      return;
+    }
+
+    const filtered = {
+      username: result.Item.Username.S,
+      avatar: result.Item.Avatar.S,
+      bgColor: result.Item.BgColor.S,
+    };
+
+    response.statusCode = 200;
+    response.body = JSON.stringify(filtered, '', 2);
+
+    console.info("getUsername event > by Id > response:", JSON.stringify(response, null, 2));
+
+    callback(null, response);
+
+    return;
+  } catch(err) {
+
+    console.info("getUsername event > err:", err, err.stack);
+    response.statusCode = 500;
+    response.body = cognitoErrors(err.stack);
+    callback(null, response);
+
+  }
+
+};
+
+exports.stream = async(event, context, callback) => {
+  console.log("stream event:", JSON.stringify(event, null, 2));
+  try {
+    await verifyAccessToken(event);
+  } catch (err) {
+    console.log("stream event > verifyAccessToken > error:", err);
+    response.statusCode = 401;
+    response.body = err;
+    console.info("stream event > verifyAccessToken > error > response:", JSON.stringify(response, '', 2));
+    callback(null, response);
+    return;
+  }
+  let header_access_token;
+  if (event.headers && event.headers.Authorization) {
+    const bearer_token = event.headers.Authorization.split(' ');
+    header_access_token = bearer_token[0];
+  }
+
+  if (!header_access_token && !event.queryStringParameters.access_token) {
+    console.log("stream event > missing required fields: Must provide access token");
+    response.statusCode = 400;
+    response.body = "Must provide access token";
+    callback(null, response);
+    return;
+  }
+
+  try {
+    
+    const userData = await _getCognitoUser(header_access_token || event.queryStringParameters.access_token);
+    
+    // Convert `profile` attribute value from string to JSON
+    if (userData && userData.UserAttributes && userData.UserAttributes.length) {
+      let len = userData.UserAttributes.length;
+      while(--len >= 0) {
+        if (userData.UserAttributes[len].Name === 'profile') {
+          userData.UserAttributes[len].Value = JSON.parse(userData.UserAttributes[len].Value);
+          break;
+        }
+      }
+    }
+
+    console.log("stream event > success:", JSON.stringify(userData, '', 2));
+    const params = {
+      TableName: CHANNELS_TABLE_NAME,
+    };
+    const sub = userData.UserAttributes.find(obj => obj.Name === 'sub')
+    params.Key = {
+      'Id': {
+        S: sub.Value
+      }
+    };
+
+    console.info("stream event > by Id > params:", JSON.stringify(params, null, 2));
+      
+    const result = await ddb.getItem(params).promise();
+
+    console.info("stream event > by Id > result:", JSON.stringify(result, null, 2));
+
+    if (!result.Item) {
+      response.statusCode = 200;
+      response.body = JSON.stringify({});
+      callback(null, response);
+      return;
+    }
+
+    const filtered = {
+      ingestEndpoint: JSON.parse(result.Item.Channel.S).channel.ingestEndpoint,
+      streamKey: JSON.parse(result.Item.Channel.S).streamKey.value,
+    };
+
+    response.statusCode = 200;
+    response.body = JSON.stringify(filtered, '', 2);
+
+    console.info("stream event > by Id > response:", JSON.stringify(response, null, 2));
+
+    callback(null, response);
+
+    return;
+  } catch(err) {
+
+    console.info("stream event > err:", err, err.stack);
+    response.statusCode = 500;
+    response.body = cognitoErrors(err.stack);
+    callback(null, response);
+
+  }
+    
 };

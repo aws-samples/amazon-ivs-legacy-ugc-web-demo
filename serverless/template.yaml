@@ -3,6 +3,8 @@ Transform: 'AWS::Serverless-2016-10-31'
 Description: UGC Demo
 
 Globals:
+  Api:
+    Cors: "'*'" # This needs to be updated with the domain serving the client bundle before deploying
   Function:
     Runtime: nodejs12.x
     Timeout: 30
@@ -13,6 +15,7 @@ Globals:
         CHANNELS_TABLE_NAME: !Ref ChannelsTable
         COGNITO_USER_POOL_ID: !Ref UserPool
         COGNITO_USER_POOL_CLIENT_ID: !Ref UserPoolClient
+        REGION: !Ref AWS::Region
 
 Parameters:
   AuthName:
@@ -227,6 +230,22 @@ Resources:
           Properties:
             Path: /user
             Method: GET
+  GetUserNameLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.getUsername
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChannelsTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /user/username
+            Method: GET
   UpdateUserAttributeLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -239,7 +258,7 @@ Resources:
           Type: Api
           Properties:
             Path: /user/attr
-            Method: POST # Workaround for CORS; should be PUT method
+            Method: PUT
   ChangePasswordLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -268,24 +287,7 @@ Resources:
           Type: Api
           Properties:
             Path: /user/delete
-            Method: GET # Workaround for CORS; should be DELETE method
-
-  GetDDBChannelsLambda:
-    Type: 'AWS::Serverless::Function'
-    Properties:
-      Handler: index.get
-      Layers:
-        - !Ref LambdaLayer
-      CodeUri: lambda/
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref ChannelsTable
-      Events:
-        Api1:
-          Type: Api
-          Properties:
-            Path: /
-            Method: GET
+            Method: DELETE
   
   # IVS Interaction Endpoints
   
@@ -330,29 +332,46 @@ Resources:
       CodeUri: lambda/
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref MetadatasTable
+            TableName: !Ref ChannelsTable
       Events:
         Api1:
           Type: Api
           Properties:
             Path: /channels
             Method: GET
-  GetStreamsLambda:
+  GetStreamLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
-      Handler: index.getStreams
+      Handler: index.stream
       Layers:
         - !Ref LambdaLayer
       CodeUri: lambda/
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref MetadatasTable
+            TableName: !Ref ChannelsTable
       Events:
         Api1:
           Type: Api
           Properties:
-            Path: /channels/streams
+            Path: /stream
             Method: GET
+  LiveChannelsLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.liveChannels
+      Layers:
+        - !Ref LambdaLayer
+      CodeUri: lambda/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChannelsTable
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /live-channels
+            Method: GET
+
   GetStreamKeysLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -448,13 +467,13 @@ Resources:
             Resource: '*'
       Roles:
         - Ref: GetChannelsLambdaRole
-        - Ref: GetStreamsLambdaRole
         - Ref: SendMetadaLambdaRole
         - Ref: SignUpLambdaRole
         - Ref: UpdateUserAttributeLambdaRole
         - Ref: ResetDefaultChannelStreamKeyLambdaRole
         - Ref: DeleteUserLambdaRole
         - Ref: IsLiveLambdaRole
+        - Ref: GetUserNameLambdaRole
 
 Outputs:
   ApiURL:

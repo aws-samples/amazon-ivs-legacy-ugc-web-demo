@@ -11,30 +11,25 @@ import Streams from "./Streams";
 import { mockStreams } from "../../__test__/mocks/streams-mocks";
 
 const Home = (props) => {
-  const [gotStreams, setGotStreams] = useState(false);
+  const [hasFetchedStreams, setHasFetchedStreams] = useState(false);
   const [streams, setStreams] = useState([]);
-  const [streamId, setStreamId] = useState("");
-  const [showOfflineStreams, setShowOfflineStreams] = useState(false);
+  const { signedIn, showSignIn, username, currentPath } = props;
 
   useEffect(() => {
-    // document.addEventListener("keydown", this.handleKeyDown);
-    setShowOfflineStreams(config.SHOW_OFFLINE_STREAMS);
     const getLiveStreams = async () => {
       try {
         const baseUrl = util.getApiUrlBase();
-        const url = `${baseUrl}`;
+        const auth = util.getWithExpiry("ugc");
+        const url = `${baseUrl}${
+          config.SHOW_OFFLINE_STREAMS ? "channels" : "live-channels"
+        }`;
 
         const response = await fetch(url);
         if (response.status === 200) {
-          const json = await response.json();
-
-          let streams = json;
-          if (!config.SHOW_OFFLINE_STREAMS) {
-            streams = streams.filter((stream) => stream.isLive === "Yes");
-          }
+          const streams = await response.json();
 
           setStreams(streams);
-          setGotStreams(true);
+          setHasFetchedStreams(true);
         } else {
           throw new Error("Unable to get live streams.");
         }
@@ -46,25 +41,22 @@ const Home = (props) => {
     // Get live streams
     if (config.USE_MOCK_DATA) {
       const { streams } = mockStreams;
+
       setStreams(streams);
-      setGotStreams(true);
+      setHasFetchedStreams(true);
     } else {
       getLiveStreams();
     }
-  }, []);
-
-  const { signedIn, showSignIn, username, currentPath } = props;
+  }, [signedIn]);
 
   // Check if any streams are live
   const streamsExist = streams.length ? true : false;
 
   let componentToRender = <div></div>;
 
-  if (gotStreams) {
+  if (hasFetchedStreams) {
     if (streamsExist) {
-      componentToRender = (
-        <Streams streams={streams} showOfflineStreams={showOfflineStreams} />
-      );
+      componentToRender = <Streams streams={streams} />;
     } else if (!streamsExist) {
       componentToRender = (
         <React.Fragment>
@@ -73,11 +65,7 @@ const Home = (props) => {
               <h2>Live Streams</h2>
               <div>There are no live streams available.</div>
               <div>
-                <Link
-                  className="sign-in"
-                  to={`${currentPath}/signin`}
-                  onClick={showSignIn}
-                >
+                <Link className="sign-in" to="/signin" onClick={showSignIn}>
                   Sign in
                 </Link>{" "}
                 to go live and see your stream here.

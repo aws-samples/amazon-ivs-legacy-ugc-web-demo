@@ -2,7 +2,7 @@ import * as config from "../config";
 import { AVATAR_LIST } from "../constants";
 
 export const validateEmail = (email) => {
-  if (/^\w+([.\-+]?\w+)*@\w+([.\-+]?\w+)*(\.\w{2,3})+$/.test(email)) {
+  if (/[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/.test(email)) {
     return true;
   }
   return false;

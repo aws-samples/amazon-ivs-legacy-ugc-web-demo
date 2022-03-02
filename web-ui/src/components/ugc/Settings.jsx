@@ -234,41 +234,14 @@ const Settings = (props) => {
   };
 
   const { userInfo, auth, onSuccess, onFailure } = props;
-  const userInfoValid = Object.keys(userInfo).length ? true : false;
-
-  const currentUsername = !!username
-    ? username
-    : userInfoValid
-    ? userInfo.preferred_username
+  const isUserInfoValid = !!Object.keys(userInfo).length;
+  const currentUsername = username || userInfo.username || "";
+  const currentBgColor = bgColor || userInfo.bgColor || "";
+  const currentAvatar = avatar || userInfo.avatar || "";
+  const currentIngestServer = userInfo.ingestEndpoint
+    ? `rtmps://${userInfo.ingestEndpoint}/app/`
     : "";
-  const currentBgColor = !!bgColor
-    ? bgColor
-    : userInfoValid
-    ? userInfo.profile.bgColor
-    : "";
-  const currentAvatar = !!avatar
-    ? avatar
-    : userInfoValid
-    ? userInfo.picture
-    : "";
-
-  let currentIngestServer = userInfoValid
-    ? userInfo.profile.defaultChannelDetails.channel.ingestEndpoint
-    : "";
-  if (currentIngestServer) {
-    currentIngestServer = `rtmps://${currentIngestServer}/app/`;
-  }
-
-  let currentStreamKey = "";
-
-  if (!!streamKey) {
-    currentStreamKey = streamKey;
-  } else if (userInfoValid) {
-    currentStreamKey =
-      userInfo.profile.defaultChannelDetails.streamKey.value ||
-      userInfo.profile.defaultChannelDetails.streamKey.streamKey.value;
-  }
-
+  const currentStreamKey = streamKey || userInfo.streamKey || "";
   const streamKeyCopyDisabled = !currentStreamKey;
   const ingestServerCopyDisabled = !currentIngestServer;
   const usernameSaveDisabled = !currentUsername;

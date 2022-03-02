@@ -7,5 +7,6 @@ ehthumbs.db
 .DS_Store?
 ._*
 __MACOSX
+serverless/packaged.yaml
 
 nodejs.zip
