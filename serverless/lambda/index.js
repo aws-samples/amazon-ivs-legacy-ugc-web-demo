@@ -1375,7 +1375,7 @@ exports.getChannels = async(event, context, callback) => {
             channelName: result.Items[prop].Name.S,
             playbackUrl: JSON.parse(result.Items[prop].Channel.S).channel.playbackUrl,
             isLive: result.Items[prop].IsLive && result.Items[prop].IsLive.BOOL ? 'Yes' : 'No',
-            streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S).startTime
+            streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S || '{}').startTime
           });
         }
       }
@@ -1424,7 +1424,7 @@ exports.getChannels = async(event, context, callback) => {
           channelName: result.Items[prop].Name.S,
           playbackUrl: JSON.parse(result.Items[prop].Channel.S).channel.playbackUrl,
           isLive: result.Items[prop].IsLive && result.Items[prop].IsLive.BOOL ? 'Yes' : 'No',
-          streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S).startTime
+          streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S || '{}').startTime
         });
       }
 
@@ -1477,7 +1477,7 @@ exports.liveChannels = async(event, context, callback) => {
           bgColor: result.Items[prop].BgColor.S,
           channelName: result.Items[prop].Name.S,
           playbackUrl: JSON.parse(result.Items[prop].Channel.S).channel.playbackUrl,
-          streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S).startTime
+          streamStartTime: JSON.parse(result.Items[prop].ChannelStatus.S || '{}').startTime
         });
       }
       

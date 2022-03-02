@@ -20,7 +20,7 @@ const DeleteAccount = (props) => {
     }
   };
 
-  handleDeleteAccount = (e) => {
+  const handleDeleteAccount = (e) => {
     e.preventDefault();
     e.stopPropagation();
     deleteAccount(props.auth);
@@ -32,7 +32,6 @@ const DeleteAccount = (props) => {
       const url = `${baseUrl}user/delete?access_token=${encodeURIComponent(
         auth.AccessToken
       )}`;
-
       const options = {
         method: "DELETE",
       };
@@ -44,10 +43,11 @@ const DeleteAccount = (props) => {
         props.closeSettings(true);
       } else {
         const message = await response.text();
+
         if (message.includes("UserNotFoundException")) {
           props.closeDelete();
           props.closeSettings(true);
-          props.onFailure("User account already delete");
+          props.onFailure("User account already deleted");
         } else {
           throw new Error("Unable to delete user.");
         }

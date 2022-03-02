@@ -90,7 +90,7 @@ const Layout = (props) => {
         auth.AccessToken
       )}`;
       const options = {
-        method: "POST",
+        method: "PUT",
         body: JSON.stringify({
           Name: key,
           Value: value,
@@ -121,14 +121,7 @@ const Layout = (props) => {
 
   const handleSignOut = () => {
     util.removeSession("ugc");
-    resetStates();
-
-    if (config.USE_MOCK_DATA) {
-      const { streams } = mockStreams;
-      setStreams(streams);
-    } else {
-      getLiveStreams();
-    }
+    location.reload();
   };
 
   const onSuccess = (message) => {
@@ -179,10 +172,8 @@ const Layout = (props) => {
   };
 
   const closeSettings = (isDeleteAccount) => {
-    setUrlPath("");
     if (isDeleteAccount) {
       handleSignOut();
-      setUrlPath(``);
     }
   };
 

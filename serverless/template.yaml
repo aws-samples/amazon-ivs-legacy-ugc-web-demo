@@ -3,6 +3,8 @@ Transform: 'AWS::Serverless-2016-10-31'
 Description: UGC Demo
 
 Globals:
+  Api:
+    Cors: "'*'" # This needs to be updated with the domain serving the client bundle before deploying
   Function:
     Runtime: nodejs12.x
     Timeout: 30
@@ -256,7 +258,7 @@ Resources:
           Type: Api
           Properties:
             Path: /user/attr
-            Method: POST # Workaround for CORS; should be PUT method
+            Method: PUT
   ChangePasswordLambda:
     Type: 'AWS::Serverless::Function'
     Properties:

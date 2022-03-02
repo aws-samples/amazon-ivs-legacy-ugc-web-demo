@@ -19,7 +19,7 @@ const Header = (props) => {
   const handleSignOut = (e, redirectUrl) => {
     e.preventDefault();
     util.removeSession("ugc");
-    history.go(0); // refresh the page
+    location.reload();
   };
 
   const handleClickOutside = (e) => {

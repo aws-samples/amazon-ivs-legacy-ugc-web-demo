@@ -13,6 +13,7 @@ import { mockStreams } from "../../__test__/mocks/streams-mocks";
 const Home = (props) => {
   const [hasFetchedStreams, setHasFetchedStreams] = useState(false);
   const [streams, setStreams] = useState([]);
+  const { signedIn, showSignIn, username, currentPath } = props;
 
   useEffect(() => {
     const getLiveStreams = async () => {
@@ -46,9 +47,7 @@ const Home = (props) => {
     } else {
       getLiveStreams();
     }
-  }, []);
-
-  const { signedIn, showSignIn, username, currentPath } = props;
+  }, [signedIn]);
 
   // Check if any streams are live
   const streamsExist = streams.length ? true : false;
